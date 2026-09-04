@@ -80,6 +80,7 @@ import org.florisboard.lib.android.showShortToastSync
 import org.florisboard.lib.android.systemService
 import org.florisboard.lib.kotlin.collectIn
 import org.florisboard.lib.kotlin.collectLatestIn
+import dev.patrickgold.florisboard.ime.keylab.KeyLabLogger
 
 private val DoubleSpacePeriodMatcher = """([^.!?‽\s]\s)""".toRegex()
 
@@ -728,9 +729,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.COMPACT_LAYOUT_TO_LEFT -> windowController.actions.compactLayoutToLeft()
             KeyCode.COMPACT_LAYOUT_TO_RIGHT -> windowController.actions.compactLayoutToRight()
             KeyCode.TOGGLE_RESIZE_MODE -> windowController.editor.toggleEnabled()
-            KeyCode.DELETE -> handleBackwardDelete(OperationUnit.CHARACTERS)
+            KeyCode.DELETE -> { KeyLabLogger.log("backspace"); handleBackwardDelete(OperationUnit.CHARACTERS) }
             KeyCode.DELETE_WORD -> handleBackwardDelete(OperationUnit.WORDS)
-            KeyCode.ENTER -> handleEnter()
+            KeyCode.ENTER -> { KeyLabLogger.log("enter"); handleEnter() }
             KeyCode.FORWARD_DELETE -> handleForwardDelete(OperationUnit.CHARACTERS)
             KeyCode.FORWARD_DELETE_WORD -> handleForwardDelete(OperationUnit.WORDS)
             KeyCode.IME_SHOW_UI -> FlorisImeService.showUi()
@@ -749,7 +750,7 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.REDO -> editorInstance.performRedo()
             KeyCode.SETTINGS -> FlorisImeService.launchSettings()
             KeyCode.SHIFT -> handleShiftUp(data)
-            KeyCode.SPACE -> handleSpace(data)
+            KeyCode.SPACE -> { KeyLabLogger.log("space"); handleSpace(data) }
             KeyCode.SYSTEM_INPUT_METHOD_PICKER -> InputMethodUtils.showImePicker(appContext)
             KeyCode.SHOW_SUBTYPE_PICKER -> {
                 appContext.keyboardManager.value.activeState.isSubtypeSelectionVisible = true
@@ -805,6 +806,7 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                             if (!UCharacter.isUAlphabetic(UCharacter.codePointAt(text, 0))) {
                                 nlpManager.getAutoCommitCandidate()?.let { commitCandidate(it) }
                             }
+                            KeyLabLogger.log("char",text)
                             editorInstance.commitChar(text)
                         }
                         else -> {
