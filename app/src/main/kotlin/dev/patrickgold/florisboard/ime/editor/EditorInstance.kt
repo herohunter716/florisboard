@@ -41,6 +41,7 @@ import dev.patrickgold.florisboard.keyboardManager
 import dev.patrickgold.florisboard.lib.ext.ExtensionComponentName
 import dev.patrickgold.florisboard.nlpManager
 import dev.patrickgold.florisboard.subtypeManager
+import dev.patrickgold.florisboard.ime.keylab.KeyLabLogger
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.runBlocking
 import org.florisboard.lib.android.showShortToastSync
@@ -197,6 +198,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
     }
 
     override fun commitChar(char: String): Boolean {
+        KeyLabLogger.log("char", char, subtypeManager.activeSubtype.layoutMap.characters.componentId, "typed")
         val isInsertAutoSpaceBeforeChar = shouldInsertAutoSpaceBefore(char)
         val isInsertAutoSpaceAfterChar = shouldInsertAutoSpaceAfter(char)
         val isDeletePreviousSpace = isInsertAutoSpaceAfterChar && autoSpace.isActive
@@ -228,6 +230,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if an error occurred or the input connection is invalid.
      */
     override fun commitText(text: String): Boolean {
+        KeyLabLogger.log("text", text, subtypeManager.activeSubtype.layoutMap.characters.componentId, "typed")
         val isPhantomSpaceActive = phantomSpace.determine(text)
         autoSpace.setInactive()
         phantomSpace.setInactive()
@@ -250,6 +253,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if an error occurred or the input connection is invalid.
      */
     fun commitCompletion(candidate: SuggestionCandidate): Boolean {
+        KeyLabLogger.log("word", candidate.text.toString(), subtypeManager.activeSubtype.layoutMap.characters.componentId, "autocorrect")
         val text = candidate.text.toString()
         if (text.isEmpty() || activeInfo.isRawInputEditor) return false
         val content = activeContent
@@ -281,6 +285,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if an error occurred or the input connection is invalid.
      */
     fun commitGesture(text: String): Boolean {
+        KeyLabLogger.log("word", text, subtypeManager.activeSubtype.layoutMap.characters.componentId, "gesture")
         if (text.isEmpty() || activeInfo.isRawInputEditor) return false
         val isPhantomSpaceActive = phantomSpace.determine(text, forceActive = true)
         phantomSpace.setActive(showComposingRegion = true)
@@ -303,11 +308,12 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if something went wrong.
      */
     fun commitClipboardItem(item: ClipboardItem?): Boolean {
+        KeyLabLogger.log("paste", null, subtypeManager.activeSubtype.layoutMap.characters.componentId, "paste")
         if (item == null) return false
         val mimeTypes = item.mimeTypes
         return when (item.type) {
             ItemType.TEXT -> {
-                commitText(item.text.toString()).also {
+                super.commitText(item.text.toString()).also {
                     updateLastCommitPosition()
                 }
             }
@@ -341,6 +347,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if an error occurred or the input connection is invalid.
      */
     fun deleteBackwards(unit: OperationUnit): Boolean {
+        KeyLabLogger.log("backspace", null, subtypeManager.activeSubtype.layoutMap.characters.componentId, "typed")
         val content = activeContent
         if (unit == OperationUnit.CHARACTERS) {
             if (phantomSpace.isActive && content.currentWord.isValid && prefs.glide.immediateBackspaceDeletesWord.get()) {
@@ -364,6 +371,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
      * @return True on success, false if an error occurred or the input connection is invalid.
      */
     fun deleteForwards(unit: OperationUnit): Boolean {
+        KeyLabLogger.log("delete_forward", null, subtypeManager.activeSubtype.layoutMap.characters.componentId, "typed")
         val content = activeContent
         autoSpace.setInactive()
         phantomSpace.setInactive()

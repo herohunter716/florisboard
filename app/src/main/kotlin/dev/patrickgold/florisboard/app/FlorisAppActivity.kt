@@ -91,6 +91,13 @@ class FlorisAppActivity : ComponentActivity() {
             setKeepOnScreenCondition { !appContext.preferenceStoreLoaded.value }
         }
         super.onCreate(savedInstanceState)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            if (!android.os.Environment.isExternalStorageManager()) {
+                val intent = android.content.Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.data = android.net.Uri.parse("package:$packageName")
+                startActivity(intent)
+            }
+        }
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         prefs.other.settingsTheme.asFlow().collectIn(lifecycleScope) {
